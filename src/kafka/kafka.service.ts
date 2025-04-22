@@ -10,6 +10,8 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   private producer: Producer = this.kafka.producer();
   private consumer: Consumer = this.kafka.consumer({ groupId: 'nestjs-group' });
+  private subscribedTopics: Set<string> = new Set();
+
 
   async onModuleInit() {
     await this.producer.connect();
@@ -31,7 +33,10 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async consumeMessages(topic: string, callback: (message: string) => void) {
-    await this.consumer.subscribe({ topic, fromBeginning: true });
+    if (!this.subscribedTopics.has(topic)) {
+        await this.consumer.subscribe({ topic, fromBeginning: true });
+        this.subscribedTopics.add(topic);
+    }
     await this.consumer.run({
       eachMessage: async ({ message }) => {
         callback(message.value?.toString() || '');
