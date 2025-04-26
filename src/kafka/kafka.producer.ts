@@ -1,10 +1,19 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { KafkaConfig } from './kafka.config';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaProducerService.name);
-  constructor(private readonly kafkaConfig: KafkaConfig) {}
+  constructor(
+    private readonly kafkaConfig: KafkaConfig,
+    private readonly metricsService: MetricsService,
+  ) {}
 
   async onModuleInit() {
     await this.kafkaConfig.connectProducer();
@@ -21,6 +30,10 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       topic,
       messages: [{ value: message }],
     });
-    this.logger.log(`Message sent to topic ${topic} with message: ${JSON.stringify(message)}`);
+    this.logger.log(
+      `Message sent to topic ${topic} with message: ${JSON.stringify(message)}`,
+    );
+
+    this.metricsService.incrementKafkaMessageProduced();
   }
 }

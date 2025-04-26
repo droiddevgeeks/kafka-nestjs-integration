@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { KafkaConfig } from './kafka.config';
 import { HandlerRegistry } from './topichandler/handler.registry';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -16,6 +17,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     private readonly kafkaConfig: KafkaConfig,
     private readonly handlerRegistry: HandlerRegistry,
+    private readonly metricsService: MetricsService,
   ) {}
 
   async onModuleInit() {
@@ -37,13 +39,14 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     await this.kafkaConfig
       .getConsumer()
       .subscribe({ topics, fromBeginning: false });
-    this.logger.log(`Subscribed to topic: ${topics}`);
+    this.logger.log(`Subscribed to topic: ${topics.join(',')}`);
   }
 
   private async processKafkaMessages() {
     try {
       await this.kafkaConfig.getConsumer().run({
-        eachMessage: async ({ topic, partition, message }) => {
+        eachMessage: async ({ topic, message }) => {
+          this.metricsService.incrementKafkaMessageConsumed();
           const messageValue = message.value?.toString();
           this.logger.log(`Topic: ${topic} ==>Message value: ${messageValue}`);
           const handler = this.handlerRegistry.getHandler(topic);

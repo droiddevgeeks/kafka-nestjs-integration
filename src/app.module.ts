@@ -3,6 +3,7 @@ import { KafkaModule } from './kafka/kakfa.module';
 import { ConfigModule } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
 import { HealthModule } from './health/health.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { HealthModule } from './health/health.module';
     }),
     KafkaModule,
     HealthModule,
+    MetricsModule,
     RouterModule.register([
       {
         path: 'kafka',

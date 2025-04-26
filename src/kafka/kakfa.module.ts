@@ -6,9 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { HandlerRegistry } from './topichandler/handler.registry';
 import { PaymentTopicHandler } from './topichandler/payment.topic.handler';
 import { KafkaConsumerService } from './kafka.consumer';
+import { MetricsModule } from 'src/metrics/metrics.module';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, MetricsModule],
   controllers: [KafkaController],
   providers: [
     KafkaConfig,
