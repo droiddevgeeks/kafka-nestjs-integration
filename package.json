@@ -24,6 +24,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/terminus": "^11.0.0",
     "js-yaml": "^4.1.0",
     "kafkajs": "^2.2.4",
     "reflect-metadata": "^0.2.2",

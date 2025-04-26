@@ -17,6 +17,6 @@ import { KafkaConsumerService } from './kafka.consumer';
     PaymentTopicHandler,
     HandlerRegistry,
   ],
-  exports: [KafkaProducerService],
+  exports: [KafkaProducerService, KafkaConsumerService],
 })
 export class KafkaModule {}
