@@ -2,28 +2,44 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Kafka-NestJS Integration
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project demonstrates the integration of **Apache Kafka** with **NestJS**, showcasing a robust event-driven architecture. It is designed to handle real-time messaging, distributed systems, and microservices communication efficiently. The project is a learning-oriented implementation with features that can be extended for production-grade systems.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
+
+- **Kafka Producer and Consumer**: 
+  - Publish and consume messages from Kafka topics.
+- **Dynamic Topic Subscription**: 
+  - Subscribe to Kafka topics dynamically at runtime.
+- **Error Handling**: 
+  - Graceful handling of message processing failures with retry mechanisms.
+- **Monitoring and Observability**: 
+  - Basic metrics for Kafka message processing.
+- **Scalable Architecture**: 
+  - Designed to scale horizontally with multiple consumers.
+- **Extensible Design**: 
+  - Easily extendable for advanced Kafka features like DLQ, message filtering, and more.
+
+---
+
+## Prerequisites
+
+- **Node.js**: v16 or higher
+- **NestJS**: v9 or higher
+- **Apache Kafka**: A running Kafka cluster
+- **Docker** (optional): For running Kafka locally using Docker Compose
+
+---
+
+## Getting Started
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/droiddevgeeks/kafka-nestjs-integration
+cd kafka-nestjs-integration
 
 ## Project setup
 
@@ -44,31 +60,30 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+## Configure Kafka
+```
+PORT=3000
+KAFKA_CLIENT_ID=nestjs-kafka-client
+KAFKA_BROKER=localhost:9092
+KAFKA_TOPIC_PAYMENT=your-topic
+KAFKA_DLQ_TOPIC=your-dql-topic
+KAFKA_CONSUMER_GROUP_ID=nestjs-consumer-group
 ```
 
-## Deployment
+## Project Structure
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+src/
+├── app.module.ts          # Main application module
+├── kafka/                 # Kafka integration module
+│   ├── kafka.module.ts    # Kafka module definition
+│   ├── kafka.service.ts   # Kafka producer and consumer logic
+│   └── kafka.controller.ts # Kafka topic and configuration constants
+├── metrics/               # Metrics and monitoring
+├── health/                # Shared utilities and helpers
+└── main.ts                # Application entry point
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
 ## Resources
 
