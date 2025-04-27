@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { KafkaConfig } from './kafka.config';
 import { MetricsService } from 'src/metrics/metrics.service';
+import { ProducerRecord } from 'kafkajs';
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
@@ -17,11 +18,13 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.kafkaConfig.connectProducer();
+    await this.kafkaConfig.connectTransactionalProducer();
     this.logger.log('Kafka producer connected');
   }
 
   async onModuleDestroy() {
     await this.kafkaConfig.disconnectProducer();
+    await this.kafkaConfig.disconnectTransactionalProducer();
     this.logger.log('Kafka Producer disconnected');
   }
 
@@ -35,5 +38,21 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.metricsService.incrementKafkaMessageProduced();
+  }
+
+  async sendMessageWithTransaction(record: ProducerRecord) {
+    const transaction = await this.kafkaConfig.getTxnProducer().transaction();
+    try {
+      this.logger.log(
+        `Sending message with transaction: ${JSON.stringify(record)}`,
+      );
+      await transaction.send(record);
+      await transaction.commit();
+      this.logger.log('Transaction committed successfully');
+    } catch (error) {
+      this.logger.error('Transaction failed, aborting...', error.message);
+      await transaction.abort(); // Abort the transaction on failure
+      throw error;
+    }
   }
 }

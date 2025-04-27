@@ -6,6 +6,7 @@ import { Kafka, Consumer, Producer } from 'kafkajs';
 export class KafkaConfig {
   private kafka: Kafka;
   private producer: Producer | null = null;
+  private txnProducer: Producer | null = null;
   private consumer: Consumer | null = null;
 
   private readonly logger = new Logger(KafkaConfig.name);
@@ -30,6 +31,17 @@ export class KafkaConfig {
     return this.producer;
   }
 
+  public getTxnProducer(): Producer {
+    if (!this.txnProducer) {
+      this.logger.log('Creating transactional Kafka producer');
+      this.txnProducer = this.getKafkaClient().producer({
+        transactionalId: 'transactional-producer',
+        maxInFlightRequests: 1,
+      });
+    }
+    return this.txnProducer;
+  }
+
   public getConsumer(): Consumer {
     if (!this.consumer) {
       this.logger.log('Creating Kafka consumer');
@@ -49,6 +61,11 @@ export class KafkaConfig {
     console.log('Producer connected');
   }
 
+  async connectTransactionalProducer() {
+    await this.getTxnProducer().connect();
+    this.logger.log('Transactional producer connected');
+  }
+
   async connectConsumer() {
     await this.getConsumer().connect();
     console.log('Consumer connected');
@@ -58,6 +75,13 @@ export class KafkaConfig {
     if (this.producer) {
       await this.producer.disconnect();
       console.log('Producer disconnected');
+    }
+  }
+
+  async disconnectTransactionalProducer() {
+    if (this.txnProducer) {
+      await this.txnProducer.disconnect();
+      this.logger.log('Transactional producer disconnected');
     }
   }
 
