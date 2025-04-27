@@ -37,6 +37,8 @@ export class KafkaConfig {
         groupId:
           this.configService.get<string>('KAFKA_CONSUMER_GROUP_ID') ||
           'nestjs-group',
+        maxBytes: 10485760,
+        maxBytesPerPartition: 10485760,
       });
     }
     return this.consumer;

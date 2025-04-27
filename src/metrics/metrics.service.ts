@@ -4,6 +4,7 @@ import { collectDefaultMetrics, Counter, Registry } from 'prom-client';
 @Injectable()
 export class MetricsService {
   private readonly kafkaMessageConsumed: Counter<string>;
+  private readonly kafkaDLQMessageConsumed: Counter<string>;
   private readonly kafkaMessageProduced: Counter<string>;
 
   constructor(private readonly registry: Registry) {
@@ -11,6 +12,12 @@ export class MetricsService {
     this.kafkaMessageConsumed = new Counter({
       name: 'kafka_message_consumed',
       help: 'Number of messages consumed from Kafka',
+      labelNames: ['topic'],
+      registers: [this.registry],
+    });
+    this.kafkaDLQMessageConsumed = new Counter({
+      name: 'kafka_dlq_message_consumed',
+      help: 'Number of DLQ messages consumed from Kafka',
       labelNames: ['topic'],
       registers: [this.registry],
     });
@@ -24,6 +31,10 @@ export class MetricsService {
 
   incrementKafkaMessageConsumed() {
     this.kafkaMessageConsumed.inc();
+  }
+
+  incrementKafkaDLQMessageConsumed() {
+    this.kafkaDLQMessageConsumed.inc();
   }
 
   incrementKafkaMessageProduced() {

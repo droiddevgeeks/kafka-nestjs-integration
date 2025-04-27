@@ -7,6 +7,8 @@ import { HandlerRegistry } from './topichandler/handler.registry';
 import { PaymentTopicHandler } from './topichandler/payment.topic.handler';
 import { KafkaConsumerService } from './kafka.consumer';
 import { MetricsModule } from 'src/metrics/metrics.module';
+import { DLQTopicHandler } from './topichandler/dlq.topic.handler';
+import { DLQConsumerService } from './dql.consumer';
 
 @Module({
   imports: [ConfigModule, MetricsModule],
@@ -15,7 +17,9 @@ import { MetricsModule } from 'src/metrics/metrics.module';
     KafkaConfig,
     KafkaProducerService,
     KafkaConsumerService,
+    DLQConsumerService,
     PaymentTopicHandler,
+    DLQTopicHandler,
     HandlerRegistry,
   ],
   exports: [KafkaProducerService, KafkaConsumerService],
