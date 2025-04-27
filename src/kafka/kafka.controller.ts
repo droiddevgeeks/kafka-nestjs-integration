@@ -21,7 +21,15 @@ export class KafkaController {
       topic: topic,
       messages: [{ value: JSON.stringify(message) }],
     };
-    await this.kafkaService.sendMessageWithTransaction(record);
-    return 'Message sent';
+    try {
+      await this.kafkaService.sendMessageWithTransaction(record);
+      return { status: 'success', message: 'Message sent with transaction' };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: 'Transaction failed, message not sent',
+        error: error.message,
+      };
+    }
   }
 }

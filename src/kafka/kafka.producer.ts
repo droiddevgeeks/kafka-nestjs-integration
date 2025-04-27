@@ -51,7 +51,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Transaction committed successfully');
     } catch (error) {
       this.logger.error('Transaction failed, aborting...', error.message);
-      await transaction.abort(); // Abort the transaction on failure
+      await transaction.abort();
       throw error;
     }
   }
