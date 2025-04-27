@@ -7,9 +7,6 @@ export class PaymentTopicHandler implements TopicHandler {
 
   processMessage(topic: string, message: string): Promise<void> {
     this.logger.log(`Processing Topic ${topic} ==> message: ${message}`);
-    if (message.includes('fail')) {
-      throw new Error('Simulated processing failure');
-    }
     return Promise.resolve();
   }
 }
