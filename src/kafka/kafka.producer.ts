@@ -29,30 +29,36 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async sendMessage(topic: string, message: string) {
-    await this.kafkaConfig.getProducer().send({
-      topic,
-      messages: [{ value: message }],
-    });
-    this.logger.log(
-      `Message sent to topic ${topic} with message: ${JSON.stringify(message)}`,
-    );
-
-    this.metricsService.incrementKafkaMessageProduced();
+    const producer = this.kafkaConfig.getProducer();
+    if(producer){
+      await producer.send({
+        topic,
+        messages: [{ value: message }],
+      });
+      this.logger.log(
+        `Message sent to topic ${topic} with message: ${JSON.stringify(message)}`,
+      );
+  
+      this.metricsService.incrementKafkaMessageProduced();
+    }
   }
 
   async sendMessageWithTransaction(record: ProducerRecord) {
-    const transaction = await this.kafkaConfig.getTxnProducer().transaction();
-    try {
-      this.logger.log(
-        `Sending message with transaction: ${JSON.stringify(record)}`,
-      );
-      await transaction.send(record);
-      await transaction.commit();
-      this.logger.log('Transaction committed successfully');
-    } catch (error) {
-      this.logger.error('Transaction failed, aborting...', error.message);
-      await transaction.abort();
-      throw error;
+    const producer = this.kafkaConfig.getProducer();
+    if(producer){
+      const transaction = await producer.transaction();
+      try {
+        this.logger.log(
+          `Sending message with transaction: ${JSON.stringify(record)}`,
+        );
+        await transaction.send(record);
+        await transaction.commit();
+        this.logger.log('Transaction committed successfully');
+      } catch (error) {
+        this.logger.error('Transaction failed, aborting...', error.message);
+        await transaction.abort();
+        throw error;
+      }
     }
   }
 }

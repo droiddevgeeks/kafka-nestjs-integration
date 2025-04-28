@@ -13,7 +13,9 @@ export class KafkaConfig {
   constructor(private readonly configService: ConfigService) {}
 
   private getKafkaClient() {
-    if (!this.kafka) {
+    const kafkaEnable=  this.configService.get<boolean>('KAFKA_FLOW_ENABLE');
+    this.logger.log(`Kafka flow enable: ${kafkaEnable}`);
+    if (!this.kafka && kafkaEnable) {
       this.kafka = new Kafka({
         clientId: this.configService.get<string>('KAFKA_CLIENT_ID'),
         brokers:
@@ -23,18 +25,20 @@ export class KafkaConfig {
     return this.kafka;
   }
 
-  public getProducer(): Producer {
-    if (!this.producer) {
+  public getProducer(): Producer | null {
+    const client = this.getKafkaClient();
+    if (!this.producer && client) {
       this.logger.log('Creating Kafka producer');
-      this.producer = this.getKafkaClient().producer();
+      this.producer = client.producer();
     }
     return this.producer;
   }
 
-  public getTxnProducer(): Producer {
-    if (!this.txnProducer) {
+  public getTxnProducer(): Producer | null {
+    const client = this.getKafkaClient();
+    if (!this.txnProducer && client) {
       this.logger.log('Creating transactional Kafka producer');
-      this.txnProducer = this.getKafkaClient().producer({
+      this.txnProducer = client.producer({
         transactionalId: 'transactional-producer',
         maxInFlightRequests: 1,
       });
@@ -42,10 +46,11 @@ export class KafkaConfig {
     return this.txnProducer;
   }
 
-  public getConsumer(): Consumer {
-    if (!this.consumer) {
+  public getConsumer(): Consumer | null {
+    const client = this.getKafkaClient();
+    if (!this.consumer && client) {
       this.logger.log('Creating Kafka consumer');
-      this.consumer = this.getKafkaClient().consumer({
+      this.consumer = client.consumer({
         groupId:
           this.configService.get<string>('KAFKA_CONSUMER_GROUP_ID') ||
           'nestjs-group',
@@ -57,18 +62,27 @@ export class KafkaConfig {
   }
 
   async connectProducer() {
-    await this.getProducer().connect();
-    console.log('Producer connected');
+    const producer = this.getProducer();
+    if (producer) {
+      await producer.connect();
+      console.log('Producer connected');
+    }
   }
 
   async connectTransactionalProducer() {
-    await this.getTxnProducer().connect();
-    this.logger.log('Transactional producer connected');
+    const txnProducer = this.getTxnProducer();
+    if (txnProducer) {
+      await txnProducer.connect();
+      this.logger.log('Transactional producer connected');
+    }
   }
 
   async connectConsumer() {
-    await this.getConsumer().connect();
-    console.log('Consumer connected');
+    const consumer = this.getConsumer();
+    if (consumer) {
+      await consumer.connect();
+      console.log('Consumer connected');
+    }
   }
 
   async disconnectProducer() {

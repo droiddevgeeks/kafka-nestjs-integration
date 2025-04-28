@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { KafkaConfig } from './kafka.config';
 
@@ -12,7 +8,7 @@ export class DLQConsumerService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly kafkaConfig: KafkaConfig
+    private readonly kafkaConfig: KafkaConfig,
   ) {}
 
   async onModuleInit() {
@@ -25,9 +21,10 @@ export class DLQConsumerService implements OnModuleInit {
     this.logger.log('Subscribing to Kafka DLQ topics');
     const topics =
       this.configService.get<string>('KAFKA_DLQ_TOPIC')?.split(',') || [];
-    await this.kafkaConfig
-      .getConsumer()
-      .subscribe({ topics, fromBeginning: false });
-    this.logger.log(`Subscribed to DLQ topic: ${topics.join(',')}`);
+    const consumer = this.kafkaConfig.getConsumer();
+    if (consumer) {
+      await consumer.subscribe({ topics, fromBeginning: false });
+      this.logger.log(`Subscribed to DLQ topic: ${topics.join(',')}`);
+    }
   }
 }

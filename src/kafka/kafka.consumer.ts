@@ -40,39 +40,44 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Subscribing to Kafka topics');
     const topics =
       this.configService.get<string>('KAFKA_TOPIC_PAYMENT')?.split(',') || [];
-    await this.kafkaConfig
-      .getConsumer()
-      .subscribe({ topics, fromBeginning: false });
-    this.logger.log(`Subscribed to topic: ${topics.join(',')}`);
+
+    const consumer = this.kafkaConfig.getConsumer();
+    if (consumer) {
+      await consumer.subscribe({ topics, fromBeginning: false });
+      this.logger.log(`Subscribed to topic: ${topics.join(',')}`);
+    }
   }
 
   private async processKafkaMessages() {
     try {
-      await this.kafkaConfig.getConsumer().run({
-        eachMessage: async ({ topic, partition, message }) => {
-          this.metricsService.incrementKafkaMessageConsumed();
-          const messageValue = message.value?.toString();
-          this.logger.log(`Topic: ${topic} ==>Message value: ${messageValue}`);
-          const handler = this.handlerRegistry.getHandler(topic);
-          if (handler && messageValue) {
-            try {
-              await this.processwithRetry(handler, topic, messageValue);
-            } catch (error) {
-              this.logger.error(
-                `Message failed after retries. Sending to DLQ. Topic: ${topic}, Partition: ${partition}, Message: ${messageValue}`,
-              );
-              await this.sendToDLQ(
-                topic,
-                messageValue,
-                partition,
-                (error as Error).message || 'Unknown error',
-              );
+      const consumer = this.kafkaConfig.getConsumer();
+      if (consumer) {
+        await consumer.run({
+          eachMessage: async ({ topic, partition, message }) => {
+            this.metricsService.incrementKafkaMessageConsumed();
+            const messageValue = message.value?.toString();
+            this.logger.log(`Topic: ${topic} ==>Message value: ${messageValue}`);
+            const handler = this.handlerRegistry.getHandler(topic);
+            if (handler && messageValue) {
+              try {
+                await this.processwithRetry(handler, topic, messageValue);
+              } catch (error) {
+                this.logger.error(
+                  `Message failed after retries. Sending to DLQ. Topic: ${topic}, Partition: ${partition}, Message: ${messageValue}`,
+                );
+                await this.sendToDLQ(
+                  topic,
+                  messageValue,
+                  partition,
+                  (error as Error).message || 'Unknown error',
+                );
+              }
+            } else {
+              this.logger.warn(`No handler found for topic ${topic}`);
             }
-          } else {
-            this.logger.warn(`No handler found for topic ${topic}`);
-          }
-        },
-      });
+          },
+        });
+      }
     } catch (error) {
       this.logger.error('Error processing Kafka messages', error.message);
     }
@@ -132,9 +137,11 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
 
   async isConnected(): Promise<boolean> {
     try {
-      // Perform a lightweight operation to verify the connection
-      await this.kafkaConfig.getConsumer().describeGroup();
-      this.isConsumerConnected = true;
+      const consumer = this.kafkaConfig.getConsumer();
+      if(consumer){
+        await consumer.describeGroup();
+        this.isConsumerConnected = true;
+      }
     } catch (error) {
       console.error('Kafka connection check failed:', error);
       this.isConsumerConnected = false;
