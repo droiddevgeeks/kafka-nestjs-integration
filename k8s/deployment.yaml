@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-nestjs-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kafka-nestjs
+  template:
+    metadata:
+      labels:
+        app: kafka-nestjs
+    spec:
+      containers:
+      - name: kafka-nestjs
+        image: your-dockerhub-username/kafka-nestjs:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
